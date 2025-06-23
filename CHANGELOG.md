@@ -4,17 +4,20 @@ All notable changes to this project will be documented here.
 
 ---
 
-## [0.2.0] – 2025-06-24
+## [0.1.0] - 2025-06-23
 
 ### Added
-- Admin settings page for plugin configuration (results per page, default view, enable/disable ratings and comments, stopwords)
+- Initial plugin scaffold, shortcode UI, and asset loading (PHP/JS/CSS)
+- Custom REST API endpoint: /popularai/v1/search for live post search
+- Custom REST API endpoint: /popularai/v1/autosuggest for keyword suggestions (stopwords filtered)
+- Vanilla JS (ES6+) + Fetch for all AJAX UI (no jQuery or frameworks)
+- Real-time autosuggest for keywords, driven by REST API
+- Dynamic category dropdown, populated via WP REST /wp/v2/categories
+- Responsive results rendering (title, excerpt, permalink, category, date)
+- "No results found" message for empty queries
+- Fully dynamic, no page reloads; compatible with all themes/builders
 
-
-## [0.1.0] – 2025-06-23
-
-### Added
-- Initial plugin structure and folder setup
-- Alpine.js enqueued from CDN for frontend reactivity
-- Registered `[popular_ai_software_search]` shortcode with placeholder UI
-- Enqueued starter CSS for custom styles
-- Plugin activation hook in place for future DB or setup needs
+### Technical
+- JS dynamically picks up correct REST API base URL for subfolders/multisite
+- All assets only load on shortcode pages
+- Security: output and REST inputs fully sanitized
