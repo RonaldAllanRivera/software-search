@@ -4,6 +4,12 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.2.0] – 2025-06-24
+
+### Added
+- Admin settings page for plugin configuration (results per page, default view, enable/disable ratings and comments, stopwords)
+
+
 ## [0.1.0] – 2025-06-23
 
 ### Added
