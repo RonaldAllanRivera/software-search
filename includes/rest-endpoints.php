@@ -31,19 +31,45 @@ add_action('rest_api_init', function() {
 
 // --- Search Callback ---
 function pais_rest_search($request) {
+    global $wpdb;
+    $keyword = trim(sanitize_text_field($request['keyword']));
+    $category = sanitize_text_field($request['category']);
+    $allowed_orderby = ['title','date','category'];
+    $orderby = in_array($request['orderby'], $allowed_orderby) ? $request['orderby'] : 'date';
+    $order = strtolower($request['order']) === 'asc' ? 'ASC' : 'DESC';
+
     $args = [
         'post_type'      => 'post',
         'posts_per_page' => absint($request['per_page']) ?: 10,
         'paged'          => absint($request['page']) ?: 1,
-        'orderby'        => sanitize_text_field($request['orderby']),
-        'order'          => sanitize_text_field($request['order']),
+        'orderby'        => $orderby,
+        'order'          => $order,
         'post_status'    => 'publish',
-        's'              => sanitize_text_field($request['keyword']),
     ];
-    if ($request['category']) {
-        $args['category_name'] = sanitize_text_field($request['category']);
+    if ($category) {
+        $args['category_name'] = $category;
     }
+
+    // Add WHERE filter for whole word search if keyword is present
+    if ($keyword !== '') {
+        add_filter('posts_where', function($where) use ($keyword, $wpdb) {
+            // Use MySQL word boundaries \b, and LIKE/REGEXP for whole word match in title or excerpt
+            $escaped = esc_sql($keyword);
+            $where .= " AND (
+                {$wpdb->posts}.post_title REGEXP '[[:<:]]{$escaped}[[:>:]]'
+                OR {$wpdb->posts}.post_excerpt REGEXP '[[:<:]]{$escaped}[[:>:]]'
+            )";
+            return $where;
+        });
+    }
+
     $q = new WP_Query($args);
+
+    // Remove filter after query
+    if ($keyword !== '') {
+        remove_all_filters('posts_where');
+    }
+
     $posts = [];
     foreach ($q->posts as $post) {
         $posts[] = [
@@ -62,6 +88,7 @@ function pais_rest_search($request) {
         'current_page' => $args['paged'],
     ];
 }
+
 
 // --- Autosuggest Callback ---
 function pais_rest_autosuggest($request) {

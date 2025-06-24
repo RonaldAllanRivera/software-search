@@ -9,6 +9,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsDiv = document.getElementById('pais-results');
     const autosuggestDiv = document.getElementById('pais-autosuggest');
 
+    // Sorting state (global to this file)
+    let currentPage = 1;
+    let maxPages = 1;
+    let selectedView = 'grid';
+    let paisLastSortBy = 'date';
+    let paisLastSortOrder = 'desc';
+    let lastData = null;
+
     // --- AUTOSUGGEST ---
     let autosuggestTimeout = null;
     keywordInput.addEventListener('input', function() {
@@ -24,12 +32,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     autosuggestDiv.innerHTML = '<ul>' +
                         words.map(word => `<li style="cursor:pointer">${word}</li>`).join('') +
                         '</ul>';
-                    // Add click events
                     autosuggestDiv.querySelectorAll('li').forEach(li => {
                         li.addEventListener('click', () => {
                             keywordInput.value = li.textContent;
                             autosuggestDiv.innerHTML = '';
-                            fetchResults(1);
+                            fetchResults(1, paisLastSortBy, paisLastSortOrder);
                         });
                     });
                 });
@@ -37,23 +44,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- SEARCH BUTTON ---
-    searchBtn.addEventListener('click', function() { fetchResults(1); });
+    searchBtn.addEventListener('click', function() { fetchResults(1, paisLastSortBy, paisLastSortOrder); });
 
     // --- SEARCH ON ENTER KEY ---
     keywordInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            fetchResults(1);
+            fetchResults(1, paisLastSortBy, paisLastSortOrder);
             autosuggestDiv.innerHTML = '';
         }
     });
 
     // --- CATEGORY CHANGE ---
-    categorySelect.addEventListener('change', function() { fetchResults(1); });
+    categorySelect.addEventListener('change', function() { fetchResults(1, paisLastSortBy, paisLastSortOrder); });
 
     // --- VIEW TOGGLE (Grid/List) ---
-    let selectedView = 'grid';
-    // Insert view toggle UI after the search form
     const viewToggle = document.createElement('div');
     viewToggle.style.display = 'flex';
     viewToggle.style.gap = '0.5rem';
@@ -77,9 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // --- PAGINATION ---
-    let currentPage = 1;
-    let maxPages = 1;
-    // Insert pagination UI after the results div
     const pagination = document.createElement('div');
     pagination.id = 'pais-pagination';
     pagination.style.margin = '1rem 0';
@@ -94,31 +96,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const pageLabel = document.getElementById('pais-page-label');
     prevBtn.onclick = function() {
         if (currentPage > 1) {
-            fetchResults(currentPage - 1);
+            fetchResults(currentPage - 1, paisLastSortBy, paisLastSortOrder);
         }
     };
     nextBtn.onclick = function() {
         if (currentPage < maxPages) {
-            fetchResults(currentPage + 1);
+            fetchResults(currentPage + 1, paisLastSortBy, paisLastSortOrder);
         }
     };
 
-    // --- RESULTS RENDERING ---
-    let lastData = null;
+    // --- RESULTS RENDERING (now with sortable columns) ---
     function renderResults(data) {
         if (!data || !data.posts || !data.posts.length) {
             resultsDiv.innerHTML = '<div>No results found.</div>';
             return;
         }
         if (selectedView === 'list') {
+            // Arrows for sort indication
+            const arrow = (field) => {
+                if (paisLastSortBy === field) {
+                    return paisLastSortOrder === 'asc' ? ' ▲' : ' ▼';
+                }
+                return '';
+            };
             resultsDiv.innerHTML = `
                 <table style="width:100%;border-collapse:collapse;">
                     <thead>
                         <tr>
-                            <th>Title</th>
+                            <th data-sort="title" style="cursor:pointer">Title${arrow('title')}</th>
                             <th>Summary</th>
-                            <th>Categories</th>
-                            <th>Date</th>
+                            <th data-sort="category" style="cursor:pointer">Categories${arrow('category')}</th>
+                            <th data-sort="date" style="cursor:pointer">Date${arrow('date')}</th>
                             <th>Link</th>
                         </tr>
                     </thead>
@@ -135,6 +143,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     </tbody>
                 </table>
             `;
+            // Add sorting handlers
+            resultsDiv.querySelectorAll('th[data-sort]').forEach(th => {
+                th.onclick = function() {
+                    const sortBy = this.getAttribute('data-sort');
+                    if (paisLastSortBy === sortBy) {
+                        paisLastSortOrder = (paisLastSortOrder === 'asc' ? 'desc' : 'asc');
+                    } else {
+                        paisLastSortBy = sortBy;
+                        paisLastSortOrder = 'asc';
+                    }
+                    fetchResults(1, paisLastSortBy, paisLastSortOrder);
+                };
+            });
         } else {
             resultsDiv.innerHTML = data.posts.map(post => `
                 <div class="pais-result-item">
@@ -147,12 +168,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- FETCH RESULTS WITH PAGINATION SUPPORT ---
-    function fetchResults(page = 1) {
+    // --- FETCH RESULTS, SUPPORTS SORT/PAGINATION ---
+    function fetchResults(page = 1, sortBy = 'date', sortOrder = 'desc') {
         const keyword = keywordInput.value.trim();
         const category = categorySelect.value;
         resultsDiv.innerHTML = 'Loading...';
-        fetch(`${pais_vars.rest_url}popularai/v1/search?keyword=${encodeURIComponent(keyword)}&category=${encodeURIComponent(category)}&page=${page}`)
+        fetch(`${pais_vars.rest_url}popularai/v1/search?keyword=${encodeURIComponent(keyword)}&category=${encodeURIComponent(category)}&page=${page}&orderby=${encodeURIComponent(sortBy)}&order=${encodeURIComponent(sortOrder)}`)
             .then(res => res.json())
             .then(data => {
                 lastData = data;
@@ -173,6 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.map(cat => `<option value="${cat.slug}">${cat.name}</option>`).join('');
         });
 
-    // --- OPTIONAL: Fetch First Results On Load ---
-    fetchResults(1);
+    // --- Fetch First Results On Load ---
+    fetchResults(1, paisLastSortBy, paisLastSortOrder);
 });
