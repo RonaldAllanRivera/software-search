@@ -47,6 +47,14 @@ function pais_rest_search($request) {
         $args['s'] = sanitize_text_field($request['keyword']);
     }
 
+
+    $order_by = sanitize_text_field($request['orderby']);
+    if ($order_by === 'comments') {
+        $args['orderby'] = 'comment_count';
+    } else {
+        $args['orderby'] = in_array($order_by, ['date', 'title']) ? $order_by : 'date';
+    }
+
     $q = new WP_Query($args);
     $posts = [];
     $keyword = trim(sanitize_text_field($request['keyword'] ?? ''));
@@ -65,6 +73,7 @@ function pais_rest_search($request) {
                 'permalink' => get_permalink($post),
                 'category'  => get_the_category_list(', ', '', $post->ID),
                 'date'      => get_the_date('', $post->ID),
+                'comments'  => get_comments_number($post->ID),
             ];
         }
     }

@@ -115,10 +115,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <table style="width:100%;border-collapse:collapse;">
                     <thead>
                         <tr>
-                            <th>Title</th>
+                            <th class="pais-sort" data-sort="title">Title</th>
                             <th>Summary</th>
-                            <th>Categories</th>
-                            <th>Date</th>
+                            <th class="pais-sort" data-sort="category">Categories</th>
+                            <th class="pais-sort" data-sort="comments">Comments</th>
+                            <th class="pais-sort" data-sort="date">Date</th>
                             <th>Link</th>
                         </tr>
                     </thead>
@@ -128,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <td>${post.title}</td>
                                 <td>${post.excerpt}</td>
                                 <td>${post.category || ''}</td>
+                                <td>${typeof post.comments !== "undefined" ? post.comments : 0}</td>
                                 <td>${post.date}</td>
                                 <td><a href="${post.permalink}" target="_blank">Learn More</a></td>
                             </tr>
@@ -135,7 +137,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     </tbody>
                 </table>
             `;
-        } else {
+        
+    // Attach sort handlers
+    resultsDiv.querySelectorAll('.pais-sort').forEach(th => {
+        th.onclick = function() {
+            const sortBy = th.dataset.sort;
+            if (window.paisLastSortBy === sortBy) {
+                window.paisLastSortOrder = (window.paisLastSortOrder === 'asc' ? 'desc' : 'asc');
+            } else {
+                window.paisLastSortBy = sortBy;
+                window.paisLastSortOrder = 'desc';
+            }
+            fetchResults(1, window.paisLastSortBy, window.paisLastSortOrder);
+        };
+    });
+} else {
             resultsDiv.innerHTML = data.posts.map(post => `
                 <div class="pais-result-item">
                     <h3><a href="${post.permalink}" target="_blank">${post.title}</a></h3>
@@ -148,11 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- FETCH RESULTS WITH PAGINATION SUPPORT ---
-    function fetchResults(page = 1) {
+    function fetchResults(page = 1, sortBy = window.paisLastSortBy, sortOrder = window.paisLastSortOrder) {
         const keyword = keywordInput.value.trim();
         const category = categorySelect.value;
         resultsDiv.innerHTML = 'Loading...';
-        fetch(`${pais_vars.rest_url}popularai/v1/search?keyword=${encodeURIComponent(keyword)}&category=${encodeURIComponent(category)}&page=${page}`)
+        fetch(`${pais_vars.rest_url}popularai/v1/search?keyword=${encodeURIComponent(keyword)}&category=${encodeURIComponent(category)}&page=${page}&orderby=${encodeURIComponent(sortBy)}&order=${encodeURIComponent(sortOrder)}`)
             .then(res => res.json())
             .then(data => {
                 lastData = data;
