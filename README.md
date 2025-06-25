@@ -1,7 +1,3 @@
-Here is a **new README.md for Day 1** that matches your Vanilla JS + Fetch and modern WordPress plugin development approach. This version **removes all Alpine.js references** and describes your stack, philosophy, and project direction in a way that is both professional and portfolio-ready:
-
----
-
 # Popular AI Software Search
 
 A **modern, AJAX-powered WordPress plugin** for advanced post searching.
@@ -15,7 +11,7 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 * **Dynamic search** with live keyword autosuggest (stopwords filtered)
 * **Category filtering** and real-time UI updates (no page reload)
 * **Grid/List view toggle** for flexible result display
-* **Sortable, paginated results** (title, category, star rating, comments, date)
+* **Sortable, paginated results** (title, category, star rating, comments, date) — Pagination and total count now always match filtered (keyword/category) search!
 * **User star ratings** (1-5, per post, registered users)
 * **Threaded comments** via native WP Comments API (forum-style)
 * **Elementor Widget & Shortcode support**
@@ -25,6 +21,13 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 * **Zero JS conflicts:** all JS and CSS are namespaced, loaded only when needed
 
 ---
+
+### 🆕 What's New (v0.1.2)
+- Accurate pagination with whole-word keyword search: Backend now filters and paginates after PHP-side keyword filtering for 100% correct total/pages.
+- MySQL/MariaDB compatibility: All custom REGEXP logic removed. Uses native WordPress search and safe, universal PHP filtering.
+- Search UI and REST API now always display the correct number of results and pages, no matter the keyword or category filter.
+---
+
 
 ## 💡 Tech Stack & Philosophy
 
@@ -55,9 +58,9 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 ## 🏗️ Roadmap
 
 * [x] Scaffold plugin structure, enqueue Vanilla JS, and register shortcode
+* [x] Implement REST API endpoints (search, autosuggest, rating)
+* [x] Build Vanilla JS-powered search and results UI
 * [ ] Build admin settings page
-* [ ] Implement REST API endpoints (search, autosuggest, rating)
-* [ ] Build Vanilla JS-powered search and results UI
 * [ ] Integrate star rating and comments
 * [ ] Add Elementor widget support
 * [ ] Optimize for large datasets (indexing, caching)

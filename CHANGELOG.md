@@ -4,6 +4,17 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.1.2] - 2025-06-25
+
+### Fixed
+- Pagination now works correctly when using whole-word keyword search filtering in PHP.
+- REST API returns the real number of results and total pages after filtering.
+- Pagination UI is now always accurate for all keyword and category search cases.
+
+### Technical
+- Refactored search endpoint to filter matching posts in PHP, then paginate the filtered results before returning to the frontend.
+
+
 ## [0.1.1] - 2025-06-24
 
 ### Fixed

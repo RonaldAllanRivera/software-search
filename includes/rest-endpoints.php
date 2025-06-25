@@ -31,10 +31,11 @@ add_action('rest_api_init', function() {
 
 // --- Search Callback ---
 function pais_rest_search($request) {
+    // Get ALL matching posts from DB (no limit) for accurate PHP-side filtering
     $args = [
         'post_type'      => 'post',
-        'posts_per_page' => absint($request['per_page']) ?: 10,
-        'paged'          => absint($request['page']) ?: 1,
+        'posts_per_page' => 1000, // get all, or use a big enough number
+        'paged'          => 1,
         'orderby'        => sanitize_text_field($request['orderby']),
         'order'          => sanitize_text_field($request['order']),
         'post_status'    => 'publish',
@@ -68,13 +69,22 @@ function pais_rest_search($request) {
         }
     }
 
+    // Paginate the PHP-filtered posts
+    $per_page = absint($request['per_page']) ?: 10;
+    $page = absint($request['page']) ?: 1;
+    $total = count($posts);
+    $max_num_pages = max(1, ceil($total / $per_page));
+    $offset = ($page - 1) * $per_page;
+    $paged_posts = array_slice($posts, $offset, $per_page);
+
     return [
-        'total' => $q->found_posts,
-        'posts' => $posts,
-        'max_num_pages' => $q->max_num_pages,
-        'current_page' => $args['paged'],
+        'total'         => $total,
+        'posts'         => $paged_posts,
+        'max_num_pages' => $max_num_pages,
+        'current_page'  => $page,
     ];
 }
+
 
 
 // --- Autosuggest Callback ---
