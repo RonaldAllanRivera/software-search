@@ -16,25 +16,27 @@ add_action('plugins_loaded', function() {
 
 
 // 1. Enqueue Vanilla JS and CSS only where shortcode/widget is present
+
 add_action('wp_enqueue_scripts', function() {
-    if (is_singular() && has_shortcode(get_post(get_the_ID())->post_content, 'popular_ai_software_search')) {
-        wp_enqueue_script(
-            'pais-search-js',
-            plugins_url('assets/js/search.js', __FILE__),
-            [],
-            '0.1',
-            true
-        );
-        wp_enqueue_style(
+    wp_enqueue_script(
+        'pais-search-js',
+        plugins_url('assets/js/search.js', __FILE__),
+        array('jquery'),
+        '1.0',
+        true
+    );
+    // Fix REST API base for subdirectory or root installs
+    wp_localize_script('pais-search-js', 'pais_vars', array(
+        'rest_url' => trailingslashit(home_url()) . 'wp-json/',
+    ));
+    wp_add_inline_script('pais-search-js', 'window.pais_vars = window.pais_vars || {};');
+
+    wp_enqueue_style(
             'pais-style',
             plugins_url('assets/css/styles.css', __FILE__),
             [],
             '0.1'
         );
-        wp_localize_script('pais-search-js', 'pais_vars', [
-        'rest_url' => esc_url_raw( get_rest_url() ),
-        ]);
-    }
 });
 
 // 2. Register Shortcode
@@ -56,3 +58,103 @@ function pais_render_search_shortcode($atts) {
     return ob_get_clean();
 }
 add_shortcode('popular_ai_software_search', 'pais_render_search_shortcode');
+
+register_activation_hook(__FILE__, function() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'pais_ratings';
+    $charset = $wpdb->get_charset_collate();
+    $sql = "CREATE TABLE IF NOT EXISTS $table (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        post_id BIGINT NOT NULL,
+        rating TINYINT NOT NULL,
+        ip VARCHAR(45),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) $charset;";
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+});
+
+// [pais_star_rating]
+add_shortcode('pais_star_rating', function() {
+    if (!is_singular('post')) return '';
+    global $post;
+    ob_start();
+    ?>
+        <div class="pais-rating-widget">
+        <div class="pais-rating-header">How useful was this post?</div>
+        <div id="pais-star-rating" data-post="<?php echo esc_attr($post->ID); ?>"></div>
+    </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var el = document.getElementById('pais-star-rating');
+        if (!el) return;
+        var postId = el.dataset.post;
+        let rated = false, userRating = 0;
+        var rest_url = (window.pais_vars && window.pais_vars.rest_url) ? window.pais_vars.rest_url : '/wp-json/';
+        fetch(rest_url + 'popularai/v1/rating?post_id=' + postId)
+            .then(res => res.json())
+            .then(data => renderStars(data.avg, data.count));
+        function renderStars(avg, count) {
+            let rounded = Math.round(avg || 0);
+            el.innerHTML = `<div class="pais-star-row">
+                ${[1,2,3,4,5].map(n =>
+                    `<span class="pais-star${n<=rounded?' selected':''}" data-value="${n}" title="${n} star${n>1?'s':''}">&#9733;</span>`
+                ).join('')}
+            </div>
+            <div class="pais-rating-summary">${avg ? (avg + ' / 5') : 'No rating yet'} (${count} vote${count==1?'':'s'})</div>
+            <div id="pais-rating-msg" style="margin-top:3px;color:#008800;font-size:0.99em;"></div>`;
+            if (!rated) {
+                var stars = el.querySelectorAll('.pais-star');
+                stars.forEach(star => {
+                    // Highlight stars on hover
+                    star.addEventListener('mouseenter', function() {
+                        let val = parseInt(this.dataset.value, 10);
+                        stars.forEach((s, idx) => {
+                            s.classList.toggle('highlighted', idx < val);
+                        });
+                    });
+                    // Remove highlight on mouseout
+                    star.addEventListener('mouseleave', function() {
+                        stars.forEach(s => s.classList.remove('highlighted'));
+                    });
+                    // Click to rate
+                    star.onclick = function() {
+                        let value = this.dataset.value;
+                        userRating = value;
+                        fetch(rest_url + 'popularai/v1/rate', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({post_id: postId, rating: value})
+                        }).then(r=>r.json()).then(resp => {
+                            document.getElementById('pais-rating-msg').innerText =
+                                resp.success ? "Thanks for rating!" : (resp.message || "Error.");
+                            rated = true;
+                            // re-render to lock in selection
+                            renderStars(value, count + 1);
+                        });
+                    };
+                });
+                // Remove highlight from all on leaving the star row area
+                el.querySelector('.pais-star-row').addEventListener('mouseleave', function() {
+                    stars.forEach(s => s.classList.remove('highlighted'));
+                });
+            }
+        }
+    });
+    </script>
+    <?php
+    return ob_get_clean();
+});
+
+
+
+add_filter('the_content', function($content) {
+    if (is_singular('post')) {
+        $star_widget = do_shortcode('[pais_star_rating]');
+        // Add the widget BEFORE or AFTER content (choose one)
+        // return $star_widget . $content; // Widget before content
+        return $content . $star_widget;    // Widget after content (recommended)
+    }
+    return $content;
+});
+

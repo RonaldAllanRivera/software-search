@@ -12,7 +12,10 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 * **Category filtering** and real-time UI updates (no page reload)
 * **Grid/List view toggle** for flexible result display
 * **Sortable, paginated results** (title, category, star rating, comments, date) — Pagination and total count now always match filtered (keyword/category) search!
-* **User star ratings** (1-5, per post, registered users)
+* **User star ratings** (1-5, per post, via custom widget)  
+  - Prominent, centered star widget with rollover effect on single post page  
+  - Instantly updates and stores ratings via AJAX REST API
+* **Search/list view displays average star ratings as yellow stars and vote count**
 * **Threaded comments** via native WP Comments API (forum-style)
 * **Elementor Widget & Shortcode support**
 * **Fully customizable** via WordPress Admin settings
@@ -22,7 +25,11 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 
 ---
 
-### 🆕 What's New (v0.1.2)
+## 🆕 What's New (v0.1.3)
+- Beautiful, prominent star rating widget is now shown on every single post, fully AJAX, with mouseover highlight, header, and instant feedback.
+- Search/list table now shows average star ratings as yellow stars in a single line, for instant scan/read.
+- Results columns are always one line (no wrap), for cleaner tables.
+- All REST calls robustly use the correct API path regardless of site location.
 - Accurate pagination with whole-word keyword search: Backend now filters and paginates after PHP-side keyword filtering for 100% correct total/pages.
 - MySQL/MariaDB compatibility: All custom REGEXP logic removed. Uses native WordPress search and safe, universal PHP filtering.
 - Search UI and REST API now always display the correct number of results and pages, no matter the keyword or category filter.
@@ -60,8 +67,8 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 * [x] Scaffold plugin structure, enqueue Vanilla JS, and register shortcode
 * [x] Implement REST API endpoints (search, autosuggest, rating)
 * [x] Build Vanilla JS-powered search and results UI
+* [x] Integrate star rating and comments
 * [ ] Build admin settings page
-* [ ] Integrate star rating and comments
 * [ ] Add Elementor widget support
 * [ ] Optimize for large datasets (indexing, caching)
 * [ ] Polish, docs, and testing

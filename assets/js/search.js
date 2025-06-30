@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <th>Summary</th>
                             <th class="pais-sort" data-sort="category">Categories</th>
                             <th class="pais-sort" data-sort="comments">Comments</th>
+                            <th class="pais-sort" data-sort="rating">Rating</th>
                             <th class="pais-sort" data-sort="date">Date</th>
                             <th>Link</th>
                         </tr>
@@ -128,9 +129,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             <tr>
                                 <td>${post.title}</td>
                                 <td>${post.excerpt}</td>
-                                <td>${post.category || ''}</td>
-                                <td>${typeof post.comments !== "undefined" ? post.comments : 0}</td>
-                                <td>${post.date}</td>
+                                <td class="pais-nowrap">${post.category || ''}</td>
+                                <td class="pais-nowrap">${typeof post.comments !== "undefined" ? post.comments : 0}</td>
+                                <td class="pais-nowrap">
+                                ${post.votes > 0 
+                                    ? `<span title="Rated ${post.rating} out of 5 by ${post.votes} user(s)">
+                                        <span style="color:#ffc107;">
+                                            ${'★'.repeat(Math.round(post.rating))}
+                                        </span>
+                                        <span style="color:#bbb;">
+                                            ${'☆'.repeat(5 - Math.round(post.rating))}
+                                        </span>
+                                        <span style="color:#666;">(${post.votes})</span>
+                                    </span>`
+                                    : '—'}
+                                </td>
+                                <td class="pais-nowrap">${post.date}</td>
                                 <td><a href="${post.permalink}" target="_blank">Learn More</a></td>
                             </tr>
                         `).join('')}

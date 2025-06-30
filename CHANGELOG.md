@@ -4,6 +4,21 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.1.3] - 2025-07-01
+
+### Added
+- Prominent, centered star rating widget on all single post pages with bold header, mouseover highlight, and instant voting.
+- Ratings stored in custom table, fetched and rendered via AJAX for all posts.
+- Results table now displays average star ratings in yellow, matching frontend design.
+- Categories, Comments, Rating, Date, and Link columns are now single-line, never wrapping for a compact look.
+
+### Improved
+- All REST API calls now use a robust dynamic base path for full compatibility with subdirectory, multisite, or localhost installs.
+- Visual polish for ratings table and single post UX.
+
+### Technical
+- Uses `pais_vars.rest_url` (localized via PHP) in all frontend JS for reliable API routing.
+
 ## [0.1.2] - 2025-06-25
 
 ### Fixed
