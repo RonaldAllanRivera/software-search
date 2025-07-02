@@ -4,6 +4,14 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.1.4] - 2025-07-02
+
+### Added
+- Dashboard Summary Widget: Now visible on both the WordPress Dashboard and the plugin’s admin page.
+  - Shows total published posts, total star ratings, average rating, and total approved comments.
+  - Includes a usage tip for displaying the search UI with the `[popular_ai_software_search]` shortcode.
+- Refactored admin code into a dedicated `admin.php` file for better maintainability.
+
 ## [0.1.3] - 2025-07-01
 
 ### Added

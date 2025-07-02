@@ -1,4 +1,5 @@
 <?php
+// popular-ai-software-search.php
 /*
 Plugin Name: Popular AI Software Search
 Description: AJAX-powered, vanilla JS WordPress plugin for advanced post search with autosuggest, grid/list view, and Elementor support.
@@ -158,3 +159,6 @@ add_filter('the_content', function($content) {
     return $content;
 });
 
+if (is_admin()) {
+    require_once __DIR__ . '/includes/admin.php';
+}

@@ -22,8 +22,13 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 * **Yoast SEO integration** (SEO titles, meta, keywords)
 * **Scalable** for 20k+ posts (optimized SQL, REST API, caching)
 * **Zero JS conflicts:** all JS and CSS are namespaced, loaded only when needed
+* **Admin dashboard widget** showing published post count, star ratings, average, and comments—plus shortcode usage instructions for editors.
+
 
 ---
+## 🆕 What's New (v0.1.4)
+- Admin Dashboard widget and summary panel now display key stats and usage help both in the main dashboard and plugin admin page.
+- Admin UI refactored for clarity and future feature expansion.
 
 ## 🆕 What's New (v0.1.3)
 - Beautiful, prominent star rating widget is now shown on every single post, fully AJAX, with mouseover highlight, header, and instant feedback.
