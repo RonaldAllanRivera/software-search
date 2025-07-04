@@ -19,13 +19,22 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 * **Threaded comments** via native WP Comments API (forum-style)
 * **Elementor Widget & Shortcode support**
 * **Fully customizable** via WordPress Admin settings
-* **Yoast SEO integration** (SEO titles, meta, keywords)
 * **Scalable** for 20k+ posts (optimized SQL, REST API, caching)
 * **Zero JS conflicts:** all JS and CSS are namespaced, loaded only when needed
-* **Admin dashboard widget** showing published post count, star ratings, average, and comments—plus shortcode usage instructions for editors.
+* **Admin Ratings Management Panel:**  
+  - View, search, and sort all posts with average rating, votes, and comments.
+  - AJAX-powered, paginated, and sortable—built to handle 30,000+ posts.
+* **Danger Zone admin tools:**  
+  - One-click "Reset All Ratings" and "Delete All Comments" for fast cleanup during QA/testing or before go-live.
+
 
 
 ---
+## 🆕 What's New (v0.1.5)
+- Admin Ratings Management Panel: Efficiently search, browse, and sort ratings for thousands of posts in the admin, with no slowdowns.
+- New "Reset All Ratings" and "Delete All Comments" tools for fast clean-up after testing.
+- All admin panel styles now load properly for a seamless user experience.
+
 ## 🆕 What's New (v0.1.4)
 - Admin Dashboard widget and summary panel now display key stats and usage help both in the main dashboard and plugin admin page.
 - Admin UI refactored for clarity and future feature expansion.

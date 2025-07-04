@@ -40,6 +40,17 @@ add_action('wp_enqueue_scripts', function() {
         );
 });
 
+add_action('admin_enqueue_scripts', function($hook) {
+    // Only load on your plugin’s admin pages, or everywhere if you want
+    // To target your custom admin pages, check $hook value, e.g. 'toplevel_page_pais_admin'
+    wp_enqueue_style(
+        'pais-admin-style',
+        plugins_url('assets/css/styles.css', __FILE__),
+        [],
+        '1.0'
+    );
+});
+
 // 2. Register Shortcode
 function pais_render_search_shortcode($atts) {
     ob_start(); ?>

@@ -43,3 +43,21 @@
     .pais-nowrap {
     white-space: nowrap;
 }
+
+.pais-sort-th {
+    color: #0074d9 !important;
+    font-weight: bold !important;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: color 0.15s;
+}
+.pais-sort-th:hover {
+    color: #ff9800;
+}
+.pais-sort-icon {
+    font-size: 0.89em;
+    margin-left: 3px;
+    vertical-align: middle;
+    opacity: 0.7;
+}

@@ -4,6 +4,19 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.1.5] - 2025-07-02
+
+### Added
+- Ratings Management Panel (admin): New submenu page listing all posts with title, date, average rating, votes, and comments.
+  - AJAX-powered search, pagination, and column sorting—scalable to 30,000+ posts.
+  - Sortable columns with color-coded, pointer cursor headers for clear UX.
+- Danger Zone admin tools: "Reset All Ratings" and "Delete All Comments" buttons, with confirmation, for safely clearing all test data.
+- Plugin styles now correctly loaded in admin via `admin_enqueue_scripts`.
+
+### Improved
+- No dependency on jQuery or frameworks, all admin tools remain fast even on large datasets.
+
+
 ## [0.1.4] - 2025-07-02
 
 ### Added
