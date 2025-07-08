@@ -164,14 +164,46 @@ add_action('rest_api_init', function() {
 function pais_get_rating_for_post($post_id) {
     global $wpdb;
     $table = $wpdb->prefix . 'pais_ratings';
-    $row = $wpdb->get_row($wpdb->prepare(
-        "SELECT AVG(rating) as avg_rating, COUNT(*) as vote_count FROM $table WHERE post_id=%d", $post_id
-    ));
+    $result = $wpdb->get_row($wpdb->prepare(
+        "SELECT AVG(rating) as avg_rating, COUNT(*) as rating_count FROM $table WHERE post_id = %d",
+        $post_id
+    ), ARRAY_A);
+    
     return [
-        'avg'   => $row ? round(floatval($row->avg_rating), 2) : 0,
-        'count' => $row ? intval($row->vote_count) : 0
+        'avg' => $result ? round($result['avg_rating'], 1) : 0,
+        'count' => $result ? (int)$result['rating_count'] : 0,
     ];
 }
+
+// Get categories with post count
+function pais_get_categories_with_count() {
+    $categories = get_categories([
+        'hide_empty' => true, // Only show categories with posts
+        'orderby' => 'count',
+        'order' => 'DESC',
+    ]);
+    
+    $result = [];
+    foreach ($categories as $category) {
+        $result[] = [
+            'id' => $category->term_id,
+            'name' => $category->name,
+            'slug' => $category->slug,
+            'count' => $category->count,
+        ];
+    }
+    
+    return $result;
+}
+
+// Add categories with post count endpoint
+add_action('rest_api_init', function() {
+    register_rest_route('popularai/v1', '/categories', [
+        'methods' => 'GET',
+        'callback' => 'pais_get_categories_with_count',
+        'permission_callback' => '__return_true',
+    ]);
+});
 
 add_action('rest_api_init', function() {
     register_rest_route('popularai/v1', '/rating', array(

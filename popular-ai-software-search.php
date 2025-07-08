@@ -3,12 +3,12 @@
 /*
 Plugin Name: Popular AI Software Search
 Description: AJAX-powered, vanilla JS WordPress plugin for advanced post search with autosuggest, grid/list view, and Elementor support.
-Version: 0.1
+Version: 0.1.7
 Author: Ronald Allan Rivera
 */
 
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
+if ( ! defined('ABSPATH') ) exit; // Prevent direct access
 
 // Load REST endpoints
 add_action('plugins_loaded', function() {

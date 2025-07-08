@@ -9,8 +9,8 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 ## 🚀 Features
 
 * **Dynamic search** with live keyword autosuggest (stopwords filtered)
-* **Category filtering** and real-time UI updates (no page reload)
-* **Grid/List view toggle** for flexible result display
+* **Smart category filtering** with post counts and real-time UI updates (no page reload)
+* **Grid/List view toggle** with responsive design for all screen sizes
 * **Sortable, paginated results** (title, category, star rating, comments, date) — Pagination and total count now always match filtered (keyword/category) search!
 * **User star ratings** (1-5, per post, via custom widget)  
   - Prominent, centered star widget with rollover effect on single post page  

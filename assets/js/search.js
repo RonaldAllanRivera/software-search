@@ -1,13 +1,28 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Get all relevant elements by ID
     const root = document.getElementById('pais-search-root');
-    if (!root) return;
+    if (!root) {
+        console.error('Root element not found');
+        return;
+    }
+
+    // Initialize sort parameters
+    window.paisLastSortBy = window.paisLastSortBy || 'date';
+    window.paisLastSortOrder = window.paisLastSortOrder || 'desc';
 
     const keywordInput = document.getElementById('pais-keyword');
     const categorySelect = document.getElementById('pais-category');
     const searchBtn = document.getElementById('pais-search-btn');
     const resultsDiv = document.getElementById('pais-results');
     const autosuggestDiv = document.getElementById('pais-autosuggest');
+
+    // Initialize variables
+    const state = {
+        currentPage: 1,
+        maxPages: 1,
+        selectedView: 'grid',
+        lastData: null
+    };
 
     // --- AUTOSUGGEST ---
     let autosuggestTimeout = null;
@@ -52,186 +67,395 @@ document.addEventListener('DOMContentLoaded', function() {
     categorySelect.addEventListener('change', function() { fetchResults(1); });
 
     // --- VIEW TOGGLE (Grid/List) ---
-    let selectedView = 'grid';
     // Insert view toggle UI after the search form
     const viewToggle = document.createElement('div');
+    viewToggle.className = 'pais-view-toggle';
     viewToggle.style.display = 'flex';
     viewToggle.style.gap = '0.5rem';
     viewToggle.style.margin = '0.5rem 0';
     viewToggle.innerHTML = `
-        <button id="pais-view-grid" class="pais-view-btn active">Grid</button>
-        <button id="pais-view-list" class="pais-view-btn">List</button>
+        <button id="pais-view-grid" class="pais-view-btn active" aria-label="Grid view" title="Grid view">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/>
+            </svg>
+        </button>
+        <button id="pais-view-list" class="pais-view-btn" aria-label="List view" title="List view">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+            </svg>
+        </button>
     `;
     root.querySelector('#pais-search-form').after(viewToggle);
-    document.getElementById('pais-view-grid').onclick = function() {
-        selectedView = 'grid';
-        this.classList.add('active');
-        document.getElementById('pais-view-list').classList.remove('active');
-        renderResults(lastData);
+    
+    // Update view toggle handler
+    const updateView = (view) => {
+        if (window.innerWidth <= 800) return; // Ignore clicks on mobile
+        
+        state.selectedView = view;
+        const gridBtn = document.getElementById('pais-view-grid');
+        const listBtn = document.getElementById('pais-view-list');
+        
+        if (view === 'grid') {
+            gridBtn.classList.add('active');
+            listBtn.classList.remove('active');
+        } else {
+            listBtn.classList.add('active');
+            gridBtn.classList.remove('active');
+        }
+        
+        if (resultsDiv) {
+            resultsDiv.setAttribute('data-view', view);
+        }
+        
+        if (state.lastData) {
+            renderResults(state.lastData);
+        }
     };
-    document.getElementById('pais-view-list').onclick = function() {
-        selectedView = 'list';
-        this.classList.add('active');
-        document.getElementById('pais-view-grid').classList.remove('active');
-        renderResults(lastData);
-    };
+    
+    // Set up event listeners
+    document.getElementById('pais-view-grid').onclick = () => updateView('grid');
+    document.getElementById('pais-view-list').onclick = () => updateView('list');
 
     // --- PAGINATION ---
-    let currentPage = 1;
-    let maxPages = 1;
-    // Insert pagination UI after the results div
+    // Create pagination elements
     const pagination = document.createElement('div');
     pagination.id = 'pais-pagination';
-    pagination.style.margin = '1rem 0';
     pagination.innerHTML = `
-        <button id="pais-prev" disabled>Prev</button>
-        <span id="pais-page-label"></span>
-        <button id="pais-next" disabled>Next</button>
+        <div class="pais-pagination-inner">
+            <button id="pais-prev" class="pais-pagination-btn" disabled aria-label="Previous page" title="Previous page">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </button>
+            <span id="pais-page-info" class="pais-page-info">Page 1 of 1</span>
+            <button id="pais-next" class="pais-pagination-btn" disabled aria-label="Next page" title="Next page">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                </svg>
+            </button>
+        </div>
     `;
     root.appendChild(pagination);
+    
+    // Cache pagination elements
+    const pageInfo = document.getElementById('pais-page-info');
     const prevBtn = document.getElementById('pais-prev');
     const nextBtn = document.getElementById('pais-next');
-    const pageLabel = document.getElementById('pais-page-label');
     prevBtn.onclick = function() {
-        if (currentPage > 1) {
-            fetchResults(currentPage - 1);
+        if (state.currentPage > 1) {
+            fetchResults(state.currentPage - 1);
         }
     };
     nextBtn.onclick = function() {
-        if (currentPage < maxPages) {
-            fetchResults(currentPage + 1);
+        if (state.currentPage < state.maxPages) {
+            fetchResults(state.currentPage + 1);
         }
     };
 
     // --- RESULTS RENDERING ---
-    let lastData = null;
     
     function isMobile() {
         return window.innerWidth <= 800;
     }
     
+    function updateViewForMobile() {
+        const isMobileView = isMobile();
+        if (isMobileView) {
+            state.selectedView = 'grid';
+            const gridBtn = document.getElementById('pais-view-grid');
+            const listBtn = document.getElementById('pais-view-list');
+            if (gridBtn) gridBtn.classList.add('active');
+            if (listBtn) listBtn.classList.remove('active');
+        }
+        return isMobileView;
+    }
+    
+    // Handle window resize
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            if (state.lastData) {
+                updateViewForMobile();
+                renderResults(state.lastData);
+            }
+        }, 100);
+    });
+    
     function renderResults(data) {
         if (!data || !data.posts || !data.posts.length) {
-            resultsDiv.innerHTML = '<div>No results found.</div>';
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '<div class="pais-no-results">No results found. Try adjusting your search criteria.</div>';
+            }
             return;
         }
+
+        const isMobile = window.innerWidth <= 800;
         
-        if (selectedView === 'list') {
-            if (isMobile()) {
-                // CARD LAYOUT FOR MOBILE
-                resultsDiv.innerHTML = data.posts.map(post => `
-                    <div class="pais-card">
-                        <div class="pais-card-title">${post.title}</div>
-                        <div class="pais-card-content">
-                            <div><strong>Summary:</strong> ${post.excerpt}</div>
-                            <div><strong>Categories:</strong> ${post.category || ''}</div>
-                            <div><strong>Comments:</strong> ${typeof post.comments !== "undefined" ? post.comments : 0}</div>
-                            <div><strong>Rating:</strong> ${
-                                post.votes > 0
-                                ? `<span title="Rated ${post.rating} out of 5 by ${post.votes} user(s)">
-                                    <span class="pais-rating-star">${'★'.repeat(Math.round(post.rating))}</span>
-                                    <span class="pais-rating-star pais-rating-star-empty">${'☆'.repeat(5 - Math.round(post.rating))}</span>
-                                    <span class="pais-rating-count">(${post.votes})</span>
-                                </span>`
-                                : '—'
-                            }</div>
-                            <div><strong>Date:</strong> ${post.date}</div>
-                            <div><a href="${post.permalink}" class="pais-button" target="_blank">Learn More</a></div>
-                        </div>
-                    </div>
-                `).join('');
+        // Set data-view attribute on results container
+        if (resultsDiv) {
+            resultsDiv.setAttribute('data-view', state.selectedView);
+        }
+        
+        if (state.selectedView === 'list') {
+            if (isMobile) {
+                // Mobile list view - 2 column layout
+                let html = '<div class="pais-results-list">';
+                data.posts.forEach(post => {
+                    const categories = post.category ? 
+                        post.category.split(',').map(cat => cat.trim()) : [];
+                    
+                    let rating = '';
+                    if (post.rating > 0) {
+                        const filledStars = '★'.repeat(Math.round(post.rating));
+                        const emptyStars = '☆'.repeat(5 - Math.round(post.rating));
+                        rating = `
+                            <div class="pais-rating">
+                                <span class="pais-rating-stars" title="${post.rating} out of 5">
+                                    ${filledStars}${emptyStars}
+                                </span>
+                                <span class="pais-rating-count">(${post.votes || 0})</span>
+                            </div>`;
+                    } else {
+                        rating = '<div class="pais-rating">No ratings</div>';
+                    }
+                    
+                    html += `
+                        <div class="pais-mobile-list-item">
+                            <h4><a href="${post.permalink}" target="_blank" rel="noopener">${post.title}</a></h4>
+                            <p>${post.excerpt || 'No description available'}</p>
+                            ${rating}
+                            ${categories.length ? `
+                                <div class="pais-categories">
+                                    ${categories.map(cat => `<span class="pais-category-tag">${cat}</span>`).join('')}
+                                </div>` : ''
+                            }
+                            <div class="pais-actions">
+                                <a href="${post.permalink}" class="pais-button" target="_blank" rel="noopener">View</a>
+                                ${post.website ? `<a href="${post.website}" class="pais-button" target="_blank" rel="noopener nofollow">Website</a>` : ''}
+                                ${post.comments > 0 ? 
+                                    `<a href="${post.permalink}#comments" class="pais-comment-link" target="_blank" rel="noopener">💬 ${post.comments}</a>` : 
+                                    ''
+                                }
+                            </div>
+                        </div>`;
+                });
+                html += '</div>';
+                resultsDiv.innerHTML = html;
             } else {
-                // TABLE LAYOUT FOR DESKTOP
-                resultsDiv.innerHTML = `
+                // Desktop table view
+                let html = `
                     <table class="pais-results-table">
                         <thead>
                             <tr>
-                                <th class="pais-sort" data-sort="title">Title</th>
-                                <th>Summary</th>
-                                <th class="pais-sort" data-sort="category">Categories</th>
-                                <th class="pais-sort" data-sort="comments">Comments</th>
-                                <th class="pais-sort" data-sort="rating">Rating</th>
-                                <th class="pais-sort" data-sort="date">Date</th>
-                                <th>Link</th>
+                                <th class="pais-sort-th" data-sort="title">TITLE <span class="pais-sort-icon">↕</span></th>
+                                <th>SUMMARY</th>
+                                <th class="pais-sort-th" data-sort="category">CATEGORIES <span class="pais-sort-icon">↕</span></th>
+                                <th class="pais-sort-th" data-sort="date">DATE <span class="pais-sort-icon">↕</span></th>
+                                <th class="pais-sort-th" data-sort="rating">RATING <span class="pais-sort-icon">↕</span></th>
+                                <th class="pais-sort-th" data-sort="comments">COMMENTS <span class="pais-sort-icon">↕</span></th>
+                                <th>ACTIONS</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${data.posts.map(post => `
-                                <tr>
-                                    <td data-label="Title">${post.title}</td>
-                                    <td data-label="Summary">${post.excerpt}</td>
-                                    <td class="pais-nowrap" data-label="Categories">${post.category || ''}</td>
-                                    <td class="pais-nowrap" data-label="Comments">${typeof post.comments !== "undefined" ? post.comments : 0}</td>
-                                    <td class="pais-nowrap" data-label="Rating">
-                                        ${post.votes > 0 
-                                            ? `<span title="Rated ${post.rating} out of 5 by ${post.votes} user(s)">
-                                                <span class="pais-rating-star">${'★'.repeat(Math.round(post.rating))}</span>
-                                                <span class="pais-rating-star pais-rating-star-empty">${'☆'.repeat(5 - Math.round(post.rating))}</span>
-                                                <span class="pais-rating-count">(${post.votes})</span>
-                                            </span>`
-                                            : '—'}
-                                    </td>
-                                    <td class="pais-nowrap" data-label="Date">${post.date}</td>
-                                    <td data-label=""><a href="${post.permalink}" target="_blank">Learn More</a></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
+                        <tbody>`;
+
+                data.posts.forEach(post => {
+                    const categories = post.category ? 
+                        post.category.split(',').map(cat => 
+                            `<span class="pais-category-tag">${cat.trim()}</span>`
+                        ).join('') : '—';
+                    
+                    let rating = '—';
+                    if (post.rating > 0) {
+                        const filledStars = '★'.repeat(Math.round(post.rating));
+                        const emptyStars = '☆'.repeat(5 - Math.round(post.rating));
+                        rating = `
+                            <div class="pais-rating">
+                                <span class="pais-rating-stars" title="${post.rating} out of 5">
+                                    ${filledStars}${emptyStars}
+                                </span>
+                                <span class="pais-rating-count">(${post.votes || 0})</span>
+                            </div>`;
+                    }
+                    
+                    const date = post.date ? new Date(post.date).toLocaleDateString() : '—';
+                    
+                    html += `
+                        <tr>
+                            <td><a href="${post.permalink}" target="_blank" rel="noopener">${post.title}</a></td>
+                            <td>${post.excerpt || '—'}</td>
+                            <td>${categories || '—'}</td>
+                            <td>${date}</td>
+                            <td>${rating}</td>
+                            <td class="pais-nowrap">
+                                ${post.comments > 0 ? 
+                                    `<a href="${post.permalink}#comments" class="pais-comment-link" target="_blank" rel="noopener">${post.comments}</a>` : 
+                                    '—'
+                                }
+                            </td>
+                            <td class="pais-nowrap">
+                                <a href="${post.permalink}" class="pais-button" target="_blank" rel="noopener">View</a>
+                                ${post.website ? `<a href="${post.website}" class="pais-button" target="_blank" rel="noopener nofollow">Website</a>` : ''}
+                            </td>
+                        </tr>`;
+                });
                 
-                // Attach sort handlers (only for table)
-                resultsDiv.querySelectorAll('.pais-sort').forEach(th => {
-                    th.onclick = function() {
-                        const sortBy = th.dataset.sort;
+                html += `
+                        </tbody>
+                    </table>`;
+                    
+                resultsDiv.innerHTML = html;
+                
+                // Add sort event listeners
+                document.querySelectorAll('.pais-sort-th').forEach(th => {
+                    th.addEventListener('click', function() {
+                        const sortBy = this.getAttribute('data-sort');
+                        let sortOrder = 'asc';
+                        
                         if (window.paisLastSortBy === sortBy) {
-                            window.paisLastSortOrder = (window.paisLastSortOrder === 'asc' ? 'desc' : 'asc');
-                        } else {
-                            window.paisLastSortBy = sortBy;
-                            window.paisLastSortOrder = 'desc';
+                            sortOrder = window.paisLastSortOrder === 'asc' ? 'desc' : 'asc';
                         }
-                        fetchResults(1, window.paisLastSortBy, window.paisLastSortOrder);
-                    };
+                        
+                        window.paisLastSortBy = sortBy;
+                        window.paisLastSortOrder = sortOrder;
+                        
+                        // Update sort indicators
+                        document.querySelectorAll('.pais-sort-icon').forEach(icon => {
+                            icon.textContent = '↕';
+                        });
+                        
+                        const icon = this.querySelector('.pais-sort-icon');
+                        if (icon) {
+                            icon.textContent = sortOrder === 'asc' ? '↑' : '↓';
+                        }
+                        
+                        fetchResults(1, sortBy, sortOrder);
+                    });
                 });
             }
-        } else {
-            // GRID VIEW
-            resultsDiv.innerHTML = data.posts.map(post => `
-                <div class="pais-result-item">
-                    <h3><a href="${post.permalink}" target="_blank">${post.title}</a></h3>
-                    <div>${post.excerpt}</div>
-                    <div>${post.category ? post.category : ''} | ${post.date}</div>
-                    <a href="${post.permalink}" class="pais-button" target="_blank">Learn More</a>
-                </div>
-            `).join('');
+        } else if (state.selectedView === 'grid') {
+            // Grid view implementation
+            const gridItems = data.posts.map(post => {
+                let ratingStars = '';
+                if (post.rating > 0) {
+                    const fullStars = '★'.repeat(Math.round(post.rating));
+                    const emptyStars = '☆'.repeat(5 - Math.round(post.rating));
+                    ratingStars = `
+                        <div class="pais-rating">
+                            <span class="pais-rating-stars" title="${post.rating} out of 5">
+                                ${fullStars}${emptyStars}
+                            </span>
+                            <span class="pais-rating-count">(${post.votes || 0})</span>
+                        </div>`;
+                }
+                
+                const categories = post.category ? 
+                    post.category.split(',').map(cat => 
+                        `<span class="pais-category-tag">${cat.trim()}</span>`
+                    ).join('') : '—';
+                
+                return `
+                    <div class="pais-result-item">
+                        <h3><a href="${post.permalink}" target="_blank" rel="noopener">${post.title}</a></h3>
+                        <p>${post.excerpt || 'No description available'}</p>
+                        <div class="pais-result-meta">
+                            <span>${categories}</span>
+                            ${ratingStars}
+                            ${post.comments > 0 ? 
+                                `<span class="pais-comment-count">💬 ${post.comments}</span>` : 
+                                ''
+                            }
+                        </div>
+                    </div>`;
+            }).join('');
+            
+            resultsDiv.innerHTML = `<div class="pais-results-grid">${gridItems}</div>`;
         }
     }
 
     // --- FETCH RESULTS WITH PAGINATION SUPPORT ---
     function fetchResults(page = 1, sortBy = window.paisLastSortBy, sortOrder = window.paisLastSortOrder) {
-        const keyword = keywordInput.value.trim();
-        const category = categorySelect.value;
-        resultsDiv.innerHTML = 'Loading...';
-        fetch(`${pais_vars.rest_url}popularai/v1/search?keyword=${encodeURIComponent(keyword)}&category=${encodeURIComponent(category)}&page=${page}&orderby=${encodeURIComponent(sortBy)}&order=${encodeURIComponent(sortOrder)}`)
+        const keyword = keywordInput ? keywordInput.value.trim() : '';
+        const category = categorySelect ? categorySelect.value : '';
+        
+        if (resultsDiv) {
+            resultsDiv.innerHTML = 'Loading...';
+        }
+
+        const url = new URL(`${pais_vars.rest_url}popularai/v1/search`);
+        url.searchParams.append('keyword', keyword);
+        url.searchParams.append('category', category);
+        url.searchParams.append('page', page);
+        url.searchParams.append('orderby', sortBy);
+        url.searchParams.append('order', sortOrder);
+
+        fetch(url.toString())
             .then(res => res.json())
             .then(data => {
-                lastData = data;
-                currentPage = data.current_page || page;
-                maxPages = data.max_num_pages || 1;
+                if (!data) return;
+                
+                state.lastData = data;
+                state.currentPage = parseInt(page);
+                state.maxPages = data.max_num_pages || 1;
+                
                 renderResults(data);
-                pageLabel.textContent = `Page ${currentPage} of ${maxPages}`;
-                prevBtn.disabled = currentPage <= 1;
-                nextBtn.disabled = currentPage >= maxPages;
+                
+                // Update pagination info
+                if (pageInfo) {
+                    pageInfo.textContent = `Page ${state.currentPage} of ${state.maxPages}`;
+                }
+                if (prevBtn) {
+                    prevBtn.disabled = state.currentPage <= 1;
+                }
+                if (nextBtn) {
+                    nextBtn.disabled = state.currentPage >= state.maxPages;
+                }
+                
+                // Show/hide pagination based on number of pages
+                if (pagination) {
+                    pagination.style.display = state.maxPages > 1 ? 'block' : 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching results:', error);
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = '<div class="pais-error">Error loading results. Please try again.</div>';
+                }
             });
     }
 
     // --- LOAD CATEGORIES ---
-    fetch(`${pais_vars.rest_url}wp/v2/categories?per_page=100`)
-        .then(res => res.json())
-        .then(data => {
-            categorySelect.innerHTML = '<option value="">All Categories</option>' +
-                data.map(cat => `<option value="${cat.slug}">${cat.name}</option>`).join('');
-        });
+    function loadCategories() {
+        if (pais_vars && pais_vars.rest_url) {
+            fetch(`${pais_vars.rest_url}popularai/v1/categories`)
+                .then(res => res.json())
+                .then(categories => {
+                    if (categorySelect) {
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = 'All Categories';
+                        categorySelect.innerHTML = '';
+                        categorySelect.appendChild(defaultOption);
+                        
+                        categories.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.slug;
+                            option.textContent = `${cat.name} (${cat.count})`;
+                            categorySelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading categories:', error);
+                });
+        }
+    }
+    
+    // Initialize categories
+    loadCategories();
 
     // --- OPTIONAL: Fetch First Results On Load ---
-    fetchResults(1);
+    if (keywordInput && categorySelect && resultsDiv) {
+        fetchResults(1);
+    }
 });

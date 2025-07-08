@@ -4,6 +4,25 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.1.7] - 2025-07-08
+
+### Added
+- **Category Post Counts**: Added post counts next to category names in the dropdown
+- **New REST Endpoint**: Added `/popularai/v1/categories` to fetch categories with post counts
+- **Improved Pagination**: Enhanced pagination controls with better state management
+
+### Changed
+- **UI Improvements**: Updated category dropdown to show post counts
+- **Performance**: Optimized category loading with a dedicated endpoint
+- **Code Quality**: Refactored JavaScript for better maintainability
+
+### Fixed
+- Fixed pagination counter display issues
+- Resolved duplicate category loading in the dropdown
+- Fixed mobile view toggle behavior
+
+---
+
 ## [0.1.6] - 2025-07-08
 
 ### Added
