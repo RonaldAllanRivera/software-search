@@ -30,6 +30,11 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 
 
 ---
+## 🆕 What's New (v0.1.6)
+- **Responsive Design**: Added mobile-friendly card layout for screens ≤800px and table layout for larger screens in list view.
+- **Improved Mobile Experience**: Better readability and touch targets for mobile users with optimized card layout.
+- **Responsive Breakpoint**: Updated mobile breakpoint to 800px for better compatibility with modern devices.
+
 ## 🆕 What's New (v0.1.5)
 - Admin Ratings Management Panel: Efficiently search, browse, and sort ratings for thousands of posts in the admin, with no slowdowns.
 - New "Reset All Ratings" and "Delete All Comments" tools for fast clean-up after testing.

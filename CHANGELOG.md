@@ -4,6 +4,20 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.1.6] - 2025-07-08
+
+### Added
+- **Responsive Design**: New mobile-friendly card layout for screens ≤800px, with table layout for larger screens in list view.
+- **Improved Mobile Experience**: Enhanced readability and touch targets for mobile users with optimized card layout.
+
+### Changed
+- Updated mobile breakpoint from 768px to 800px for better compatibility with modern devices.
+- Improved table responsiveness with proper column stacking on mobile.
+
+### Technical
+- Added CSS media queries for responsive design.
+- Removed inline styles in favor of CSS classes for better maintainability.
+
 ## [0.1.5] - 2025-07-02
 
 ### Added

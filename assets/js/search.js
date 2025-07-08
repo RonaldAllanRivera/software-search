@@ -105,73 +105,102 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- RESULTS RENDERING ---
     let lastData = null;
+    
+    function isMobile() {
+        return window.innerWidth <= 800;
+    }
+    
     function renderResults(data) {
         if (!data || !data.posts || !data.posts.length) {
             resultsDiv.innerHTML = '<div>No results found.</div>';
             return;
         }
-        if (selectedView === 'list') {
-            resultsDiv.innerHTML = `
-                <table style="width:100%;border-collapse:collapse;">
-                    <thead>
-                        <tr>
-                            <th class="pais-sort" data-sort="title">Title</th>
-                            <th>Summary</th>
-                            <th class="pais-sort" data-sort="category">Categories</th>
-                            <th class="pais-sort" data-sort="comments">Comments</th>
-                            <th class="pais-sort" data-sort="rating">Rating</th>
-                            <th class="pais-sort" data-sort="date">Date</th>
-                            <th>Link</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.posts.map(post => `
-                            <tr>
-                                <td>${post.title}</td>
-                                <td>${post.excerpt}</td>
-                                <td class="pais-nowrap">${post.category || ''}</td>
-                                <td class="pais-nowrap">${typeof post.comments !== "undefined" ? post.comments : 0}</td>
-                                <td class="pais-nowrap">
-                                ${post.votes > 0 
-                                    ? `<span title="Rated ${post.rating} out of 5 by ${post.votes} user(s)">
-                                        <span style="color:#ffc107;">
-                                            ${'★'.repeat(Math.round(post.rating))}
-                                        </span>
-                                        <span style="color:#bbb;">
-                                            ${'☆'.repeat(5 - Math.round(post.rating))}
-                                        </span>
-                                        <span style="color:#666;">(${post.votes})</span>
-                                    </span>`
-                                    : '—'}
-                                </td>
-                                <td class="pais-nowrap">${post.date}</td>
-                                <td><a href="${post.permalink}" target="_blank">Learn More</a></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
         
-    // Attach sort handlers
-    resultsDiv.querySelectorAll('.pais-sort').forEach(th => {
-        th.onclick = function() {
-            const sortBy = th.dataset.sort;
-            if (window.paisLastSortBy === sortBy) {
-                window.paisLastSortOrder = (window.paisLastSortOrder === 'asc' ? 'desc' : 'asc');
+        if (selectedView === 'list') {
+            if (isMobile()) {
+                // CARD LAYOUT FOR MOBILE
+                resultsDiv.innerHTML = data.posts.map(post => `
+                    <div class="pais-card">
+                        <div class="pais-card-title">${post.title}</div>
+                        <div class="pais-card-content">
+                            <div><strong>Summary:</strong> ${post.excerpt}</div>
+                            <div><strong>Categories:</strong> ${post.category || ''}</div>
+                            <div><strong>Comments:</strong> ${typeof post.comments !== "undefined" ? post.comments : 0}</div>
+                            <div><strong>Rating:</strong> ${
+                                post.votes > 0
+                                ? `<span title="Rated ${post.rating} out of 5 by ${post.votes} user(s)">
+                                    <span class="pais-rating-star">${'★'.repeat(Math.round(post.rating))}</span>
+                                    <span class="pais-rating-star pais-rating-star-empty">${'☆'.repeat(5 - Math.round(post.rating))}</span>
+                                    <span class="pais-rating-count">(${post.votes})</span>
+                                </span>`
+                                : '—'
+                            }</div>
+                            <div><strong>Date:</strong> ${post.date}</div>
+                            <div><a href="${post.permalink}" class="pais-button" target="_blank">Learn More</a></div>
+                        </div>
+                    </div>
+                `).join('');
             } else {
-                window.paisLastSortBy = sortBy;
-                window.paisLastSortOrder = 'desc';
+                // TABLE LAYOUT FOR DESKTOP
+                resultsDiv.innerHTML = `
+                    <table class="pais-results-table">
+                        <thead>
+                            <tr>
+                                <th class="pais-sort" data-sort="title">Title</th>
+                                <th>Summary</th>
+                                <th class="pais-sort" data-sort="category">Categories</th>
+                                <th class="pais-sort" data-sort="comments">Comments</th>
+                                <th class="pais-sort" data-sort="rating">Rating</th>
+                                <th class="pais-sort" data-sort="date">Date</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.posts.map(post => `
+                                <tr>
+                                    <td data-label="Title">${post.title}</td>
+                                    <td data-label="Summary">${post.excerpt}</td>
+                                    <td class="pais-nowrap" data-label="Categories">${post.category || ''}</td>
+                                    <td class="pais-nowrap" data-label="Comments">${typeof post.comments !== "undefined" ? post.comments : 0}</td>
+                                    <td class="pais-nowrap" data-label="Rating">
+                                        ${post.votes > 0 
+                                            ? `<span title="Rated ${post.rating} out of 5 by ${post.votes} user(s)">
+                                                <span class="pais-rating-star">${'★'.repeat(Math.round(post.rating))}</span>
+                                                <span class="pais-rating-star pais-rating-star-empty">${'☆'.repeat(5 - Math.round(post.rating))}</span>
+                                                <span class="pais-rating-count">(${post.votes})</span>
+                                            </span>`
+                                            : '—'}
+                                    </td>
+                                    <td class="pais-nowrap" data-label="Date">${post.date}</td>
+                                    <td data-label=""><a href="${post.permalink}" target="_blank">Learn More</a></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                // Attach sort handlers (only for table)
+                resultsDiv.querySelectorAll('.pais-sort').forEach(th => {
+                    th.onclick = function() {
+                        const sortBy = th.dataset.sort;
+                        if (window.paisLastSortBy === sortBy) {
+                            window.paisLastSortOrder = (window.paisLastSortOrder === 'asc' ? 'desc' : 'asc');
+                        } else {
+                            window.paisLastSortBy = sortBy;
+                            window.paisLastSortOrder = 'desc';
+                        }
+                        fetchResults(1, window.paisLastSortBy, window.paisLastSortOrder);
+                    };
+                });
             }
-            fetchResults(1, window.paisLastSortBy, window.paisLastSortOrder);
-        };
-    });
-} else {
+        } else {
+            // GRID VIEW
             resultsDiv.innerHTML = data.posts.map(post => `
                 <div class="pais-result-item">
                     <h3><a href="${post.permalink}" target="_blank">${post.title}</a></h3>
                     <div>${post.excerpt}</div>
                     <div>${post.category ? post.category : ''} | ${post.date}</div>
-                    <a href="${post.permalink}" target="_blank">Learn More</a>
+                    <a href="${post.permalink}" class="pais-button" target="_blank">Learn More</a>
                 </div>
             `).join('');
         }
