@@ -4,6 +4,23 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.1.8] - 2025-07-10
+
+### Added
+- **Client-side Sorting**: All table sorting is now instant and handled in the browser for a faster experience.
+- **Responsive Table Improvements**: Results table is now fully responsive and left-aligned on all devices.
+
+### Changed
+- **No More Unwanted Redirects**: Visiting the homepage no longer adds sort parameters to the URL or triggers auto-scroll.
+- **Improved Mobile/Table Alignment**: Table and card layouts are visually consistent and mobile-friendly.
+
+### Fixed
+- Fixed auto-scroll to results on page load—now only scrolls on user actions.
+- Fixed table alignment and responsiveness on all devices.
+- Fixed bugs related to sort state, URL sync, and re-rendering.
+
+---
+
 ## [0.1.7] - 2025-07-08
 
 ### Added

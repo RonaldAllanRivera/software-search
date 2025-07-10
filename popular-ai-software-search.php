@@ -20,17 +20,24 @@ add_action('plugins_loaded', function() {
 
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_script(
-        'pais-search-js',
-        plugins_url('assets/js/search.js', __FILE__),
-        array('jquery'),
+        'pais-main-js',
+        plugins_url('assets/js/main.js', __FILE__),
+        array(),
         '1.0',
         true
     );
-    // Fix REST API base for subdirectory or root installs
-    wp_localize_script('pais-search-js', 'pais_vars', array(
+    wp_localize_script('pais-main-js', 'pais_vars', array(
         'rest_url' => trailingslashit(home_url()) . 'wp-json/',
     ));
-    wp_add_inline_script('pais-search-js', 'window.pais_vars = window.pais_vars || {};');
+    wp_add_inline_script('pais-main-js', 'window.pais_vars = window.pais_vars || {};
+');
+    // Set as module type for ES6 imports
+    add_filter('script_loader_tag', function($tag, $handle) {
+        if ($handle === 'pais-main-js') {
+            return str_replace('<script ', '<script type="module" ', $tag);
+        }
+        return $tag;
+    }, 10, 2);
 
     wp_enqueue_style(
             'pais-style',

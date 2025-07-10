@@ -16,9 +16,8 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
   - Prominent, centered star widget with rollover effect on single post page  
   - Instantly updates and stores ratings via AJAX REST API
 * **Search/list view displays average star ratings as yellow stars and vote count**
-* **Threaded comments** via native WP Comments API (forum-style)
-* **Elementor Widget & Shortcode support**
-* **Fully customizable** via WordPress Admin settings
+* **Threaded comments** via native WP Comments API
+* **Shortcode support**
 * **Scalable** for 20k+ posts (optimized SQL, REST API, caching)
 * **Zero JS conflicts:** all JS and CSS are namespaced, loaded only when needed
 * **Admin Ratings Management Panel:**  
@@ -27,9 +26,8 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 * **Danger Zone admin tools:**  
   - One-click "Reset All Ratings" and "Delete All Comments" for fast cleanup during QA/testing or before go-live.
 
-
-
 ---
+
 ## 🆕 What's New (v0.1.6)
 - **Responsive Design**: Added mobile-friendly card layout for screens ≤800px and table layout for larger screens in list view.
 - **Improved Mobile Experience**: Better readability and touch targets for mobile users with optimized card layout.
