@@ -54,13 +54,8 @@ let currentSortState = {
 export function renderResults(container, data, state) {
     console.log('Rendering results with data:', data);
     
-    // Store the original posts if we have new data
-    if (data?.posts) {
-        originalPosts = [...data.posts];
-    }
-    
-    // Use originalPosts if we have them, otherwise use the provided data
-    const postsToRender = originalPosts.length > 0 ? originalPosts : (data?.posts || []);
+    // Always use the latest posts from API response
+    const postsToRender = (data?.posts && data.posts.length > 0) ? data.posts : [];
     
     if (!postsToRender.length) {
         container.innerHTML = '<div class="pais-no-results">No results found. Try adjusting your search criteria.</div>';

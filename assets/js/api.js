@@ -32,7 +32,7 @@ export async function fetchResults({
         params.append('order', sortOrder);
     }
     if (keyword) {
-        params.append('s', keyword);
+        params.append('keyword', keyword);
     }
     if (category) {
         params.append('category', category);

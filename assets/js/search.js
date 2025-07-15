@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         li.addEventListener('click', () => {
                             keywordInput.value = li.textContent;
                             autosuggestDiv.innerHTML = '';
-                            fetchResults(1);
+                            // fetchResults(1);
                         });
                     });
                 });
@@ -52,19 +52,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- SEARCH BUTTON ---
-    searchBtn.addEventListener('click', function() { fetchResults(1); });
+    searchBtn.addEventListener('click', function() { // fetchResults(1); });
 
     // --- SEARCH ON ENTER KEY ---
     keywordInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            fetchResults(1);
+            // fetchResults(1);
             autosuggestDiv.innerHTML = '';
         }
     });
 
     // --- CATEGORY CHANGE ---
-    categorySelect.addEventListener('change', function() { fetchResults(1); });
+    categorySelect.addEventListener('change', function() { // fetchResults(1); });
 
     // --- VIEW TOGGLE (Grid/List) ---
     // Insert view toggle UI after the search form
@@ -143,12 +143,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('pais-next');
     prevBtn.onclick = function() {
         if (state.currentPage > 1) {
-            fetchResults(state.currentPage - 1);
+            // fetchResults(state.currentPage - 1);
         }
     };
     nextBtn.onclick = function() {
         if (state.currentPage < state.maxPages) {
-            fetchResults(state.currentPage + 1);
+            // fetchResults(state.currentPage + 1);
         }
     };
 
@@ -329,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             icon.textContent = sortOrder === 'asc' ? '↑' : '↓';
                         }
                         
-                        fetchResults(1, sortBy, sortOrder);
+                        // fetchResults(1, sortBy, sortOrder);
                     });
                 });
             }
@@ -374,7 +374,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- FETCH RESULTS WITH PAGINATION SUPPORT ---
-    function fetchResults(page = 1, sortBy = window.paisLastSortBy, sortOrder = window.paisLastSortOrder) {
+    // LEGACY SEARCH LOGIC DISABLED - Use main.js + api.js only
+/*
+
+function fetchResults(page = 1, sortBy = window.paisLastSortBy, sortOrder = window.paisLastSortOrder) {
         const keyword = keywordInput ? keywordInput.value.trim() : '';
         const category = categorySelect ? categorySelect.value : '';
         
@@ -456,6 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- OPTIONAL: Fetch First Results On Load ---
     if (keywordInput && categorySelect && resultsDiv) {
-        fetchResults(1);
+        // fetchResults(1);
     }
 });
+*/
