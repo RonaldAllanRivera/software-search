@@ -88,7 +88,7 @@ export function renderResults(container, data, state) {
                 } else {
                     rating = '<div class="pais-rating">No ratings</div>';
                 }
-                html += `<div class=\"pais-mobile-list-item\"><h4><a href=\"${post.permalink}\" target=\"_blank\" rel=\"noopener\">${post.title}</a></h4><p>${post.excerpt || 'No description available'}</p>${rating}${categories.length ? `<div class=\"pais-categories\">${categories.map(cat => `<span class=\"pais-category-tag\">${cat}</span>`).join('')}</div>` : ''}<div class=\"pais-actions\"><a href=\"${post.permalink}\" class=\"pais-button\" target=\"_blank\" rel=\"noopener\">View</a>${post.website ? `<a href=\"${post.website}\" class=\"pais-button\" target=\"_blank\" rel=\"noopener nofollow\">Website</a>` : ''}${post.comments > 0 ? `<a href=\"${post.permalink}#comments\" class=\"pais-comment-link\" target=\"_blank\" rel=\"noopener\">💬 ${post.comments}</a>` : ''}</div></div>`;
+                html += `<div class=\"pais-mobile-list-item\"><h4><a href=\"${post.permalink}\" target=\"_blank\" rel=\"noopener\">${post.title}</a></h4><p>${post.excerpt || 'No description available'}</p>${rating}${categories.length ? `<div class=\"pais-categories\">${categories.map(cat => `<span class=\"pais-category-tag\">${cat}</span>`).join('')}</div>` : ''}<div class=\"pais-actions\"><a href=\"${post.permalink}\" class=\"pais-button\" target=\"_blank\" rel=\"noopener\">View</a>${post.website ? `<a href=\"${post.website}\" class=\"pais-button\" target=\"_blank\" rel=\"noopener nofollow\">Website</a>` : ''}<button class=\"pais-compare-btn pais-button\" data-post-id=\"${post.ID}\" data-post-title=\"${post.title}\">Compare</button>${post.comments > 0 ? `<a href=\"${post.permalink}#comments\" class=\"pais-comment-link\" target=\"_blank\" rel=\"noopener\">💬 ${post.comments}</a>` : ''}</div></div>`;
             });
             html += '</div>';
             container.innerHTML = html;
@@ -119,6 +119,7 @@ export function renderResults(container, data, state) {
                         <td data-label="Actions" class="pais-nowrap">
                             <a href="${post.permalink}" class="pais-button" target="_blank" rel="noopener">View</a>
                             ${post.website ? `<a href="${post.website}" class="pais-button" target="_blank" rel="noopener nofollow">Website</a>` : ''}
+                            <button class="pais-compare-btn pais-button" data-post-id="${post.ID}" data-post-title="${post.title}">Compare</button>
                         </td>
                     </tr>`;
             });

@@ -154,10 +154,14 @@ function pais_get_rating_for_post($post_id) {
         "SELECT AVG(rating) as avg_rating, COUNT(*) as rating_count FROM $table WHERE post_id = %d",
         $post_id
     ), ARRAY_A);
-    
+
+    // If there are no ratings, avg_rating will be NULL. Default to 0.
+    $avg_rating = $result && $result['avg_rating'] !== null ? (float)$result['avg_rating'] : 0;
+    $rating_count = $result ? (int)$result['rating_count'] : 0;
+
     return [
-        'avg' => $result ? round($result['avg_rating'], 1) : 0,
-        'count' => $result ? (int)$result['rating_count'] : 0,
+        'avg'   => round($avg_rating, 1),
+        'count' => $rating_count,
     ];
 }
 

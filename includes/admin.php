@@ -23,6 +23,51 @@ add_action('admin_menu', function() {
     );
 });
 
+add_action('admin_init', 'pais_settings_init');
+
+function pais_settings_init() {
+    register_setting('popular-ai-software-search', 'pais_options');
+
+    add_settings_section(
+        'pais_settings_section',
+        'Plugin Settings',
+        'pais_settings_section_callback',
+        'popular-ai-software-search'
+    );
+
+    add_settings_field(
+        'pais_compare_page_id',
+        'Compare Page',
+        'pais_compare_page_id_callback',
+        'popular-ai-software-search',
+        'pais_settings_section'
+    );
+}
+
+function pais_settings_section_callback() {
+    echo '<p>Configure the settings for the Popular AI Software Search plugin.</p>';
+}
+
+function pais_compare_page_id_callback() {
+    $options = get_option('pais_options');
+    $selected_page_id = isset($options['compare_page_id']) ? $options['compare_page_id'] : '';
+
+    $pages = get_pages();
+
+    if ($pages) {
+        echo "<select name='pais_options[compare_page_id]'>";
+        echo "<option value=''>— Select a Page —</option>";
+        foreach ($pages as $page) {
+            $selected = selected($selected_page_id, $page->ID, false);
+            echo "<option value='" . esc_attr($page->ID) . "' $selected>" . esc_html($page->post_title) . "</option>";
+        }
+        echo "</select>";
+        echo "<p class='description'>Select the page where you have placed the <code>[pais_compare_page]</code> shortcode.</p>";
+    } else {
+        echo "<p>No pages found. Please create a page for the compare feature first.</p>";
+    }
+}
+
 function pais_admin_page() {
     global $wpdb;
 
@@ -47,6 +92,15 @@ function pais_admin_page() {
     echo '<div class="wrap"><h1>AI Software Search Admin Tools</h1>';
     // Show dashboard widget stats here too
     pais_render_dashboard_widget();
+
+    echo '<hr style="margin:2em 0 1.2em 0;">';
+
+    // Settings Form
+    echo '<form action="options.php" method="post">';
+    settings_fields('popular-ai-software-search');
+    do_settings_sections('popular-ai-software-search');
+    submit_button('Save Settings');
+    echo '</form>';
 
     echo '<hr style="margin:2em 0 1.2em 0;">';
     echo '<h2 style="color:#a00;margin-bottom:0.5em;">Danger Zone</h2>';
@@ -91,6 +145,9 @@ function pais_render_dashboard_widget() {
     echo '<hr style="margin:1.2em 0 0.7em 0;">';
     echo '<div style="font-size:1em"><strong>How to display the search UI:</strong><br>
         Use the shortcode <code>[popular_ai_software_search]</code> in any page or post, or add it to a template with <code>echo do_shortcode(\'[popular_ai_software_search]\');</code>
+        </div>';
+    echo '<div style="font-size:1em; margin-top: 1em;"><strong>How to display the compare page:</strong><br>
+        Use the shortcode <code>[pais_compare_page]</code> in a new page (e.g., a page with the slug "/compare/").
         </div>';
 }
 

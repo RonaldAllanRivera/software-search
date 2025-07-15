@@ -13,12 +13,17 @@ if ( ! defined('ABSPATH') ) exit; // Prevent direct access
 // Load REST endpoints
 add_action('plugins_loaded', function() {
     require_once __DIR__ . '/includes/rest-endpoints.php';
+    require_once __DIR__ . '/includes/compare-page-template.php';
 });
 
 
 // 1. Enqueue Vanilla JS and CSS only where shortcode/widget is present
 
 add_action('wp_enqueue_scripts', function() {
+    $post = get_post();
+    if (!$post || (strpos($post->post_content, '[popular_ai_software_search]') === false && strpos($post->post_content, '[pais_compare_page]') === false)) {
+        return;
+    }
     wp_enqueue_script(
         'pais-main-js',
         plugins_url('assets/js/main.js', __FILE__),
@@ -26,14 +31,29 @@ add_action('wp_enqueue_scripts', function() {
         '1.0',
         true
     );
+    $options = get_option('pais_options');
+    $compare_page_id = !empty($options['compare_page_id']) ? $options['compare_page_id'] : 0;
+    $compare_page_url = $compare_page_id ? get_permalink($compare_page_id) : home_url('/');
+
     wp_localize_script('pais-main-js', 'pais_vars', array(
         'rest_url' => trailingslashit(home_url()) . 'wp-json/',
+        'compare_page_url' => $compare_page_url,
     ));
     wp_add_inline_script('pais-main-js', 'window.pais_vars = window.pais_vars || {};
 ');
+
+    wp_enqueue_script(
+        'pais-compare-js',
+        plugins_url('assets/js/compare.js', __FILE__),
+        array('wp-hooks'), // Add dependency
+        '0.1',
+        true
+    );
+
+
     // Set as module type for ES6 imports
     add_filter('script_loader_tag', function($tag, $handle) {
-        if ($handle === 'pais-main-js') {
+        if (in_array($handle, ['pais-main-js', 'pais-compare-js'])) {
             return str_replace('<script ', '<script type="module" ', $tag);
         }
         return $tag;
@@ -45,6 +65,19 @@ add_action('wp_enqueue_scripts', function() {
             [],
             '0.1'
         );
+
+    wp_enqueue_style(
+            'pais-compare-style',
+            plugins_url('assets/css/compare.css', __FILE__),
+            ['pais-style'],
+            '0.1'
+        );
+
+    // On the compare page, we need the main styles for the grid layout
+    if (is_singular() && has_shortcode(get_post(get_the_ID())->post_content, 'pais_compare_page')) {
+        wp_enqueue_style('pais-style');
+        wp_enqueue_style('dashicons');
+    }
 });
 
 add_action('admin_enqueue_scripts', function($hook) {
@@ -77,6 +110,7 @@ function pais_render_search_shortcode($atts) {
     return ob_get_clean();
 }
 add_shortcode('popular_ai_software_search', 'pais_render_search_shortcode');
+add_shortcode('pais_compare_page', 'render_compare_page');
 
 register_activation_hook(__FILE__, function() {
     global $wpdb;

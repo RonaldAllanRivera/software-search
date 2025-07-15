@@ -1,5 +1,40 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+## [1.3.0] - 2025-07-15
+
+### Added
+- **Software Comparison Feature**: Users can now select up to four software items from the search results and compare them side-by-side on a dedicated page.
+- **Configurable Compare Page**: A new setting in the admin panel allows administrators to select any existing WordPress page to serve as the compare page.
+- **Floating Compare Bar**: A responsive, floating bar appears at the bottom of the screen when items are selected, showing the current selections and providing a "Compare" button.
+
+### Changed
+- The compare page displays items in a responsive two-column grid for easy viewing on all devices.
+- The compare bar is now fully responsive and stacks vertically on smaller screens to ensure all controls are accessible.
+
+### Fixed
+- Resolved JavaScript errors that prevented the compare page from loading correctly.
+- Fixed PHP `Deprecated` warnings related to passing `null` values to the `round()` function.
+
+
+## [1.1.0] - 2025-07-15
+
+### Added
+- **Compare Feature**: Users can now select up to four software items to compare on a dedicated page.
+- A floating compare bar for easy access to selected items and the comparison page.
+- New shortcode `[pais_compare_page]` to render the comparison table.
+- Responsive styles for the new comparison table.
+
+### Changed
+- Updated the admin dashboard and dashboard widget to include information about the new `[pais_compare_page]` shortcode.
+
+## [1.0.0] - Initial Release
+
+- Live AJAX search with grid and list views.
+- Star rating system.
+- Admin management panel for ratings.
+
 All notable changes to this project will be documented here.
 
 ---
