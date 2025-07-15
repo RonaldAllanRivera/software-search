@@ -4,6 +4,22 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [1.2.0] - 2025-07-15
+
+### Added
+- **Results Per Page**: Search results now display 12 items per page.
+- **Alphabetical Category Sorting**: The category dropdown is now sorted alphabetically by name for easier navigation.
+
+### Fixed
+- Resolved JavaScript syntax errors in `search.js` by removing legacy code.
+- Restored the backend search logic to ensure accurate whole-word keyword filtering across all posts.
+
+### Technical Note
+- To ensure keyword search accuracy, the plugin fetches all posts before filtering. This may result in slower performance on sites with a very large number of posts.
+
+
+---
+
 ## [0.1.8] - 2025-07-10
 
 ### Added

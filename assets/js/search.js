@@ -51,8 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 250);
     });
 
-    // --- SEARCH BUTTON ---
-    searchBtn.addEventListener('click', function() { // fetchResults(1); });
+
 
     // --- SEARCH ON ENTER KEY ---
     keywordInput.addEventListener('keydown', function(e) {
@@ -63,8 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- CATEGORY CHANGE ---
-    categorySelect.addEventListener('change', function() { // fetchResults(1); });
+
 
     // --- VIEW TOGGLE (Grid/List) ---
     // Insert view toggle UI after the search form
@@ -375,91 +373,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- FETCH RESULTS WITH PAGINATION SUPPORT ---
     // LEGACY SEARCH LOGIC DISABLED - Use main.js + api.js only
-/*
 
-function fetchResults(page = 1, sortBy = window.paisLastSortBy, sortOrder = window.paisLastSortOrder) {
-        const keyword = keywordInput ? keywordInput.value.trim() : '';
-        const category = categorySelect ? categorySelect.value : '';
-        
-        if (resultsDiv) {
-            resultsDiv.innerHTML = 'Loading...';
-        }
-
-        const url = new URL(`${pais_vars.rest_url}popularai/v1/search`);
-        url.searchParams.append('keyword', keyword);
-        url.searchParams.append('category', category);
-        url.searchParams.append('page', page);
-        url.searchParams.append('orderby', sortBy);
-        url.searchParams.append('order', sortOrder);
-
-        fetch(url.toString())
-            .then(res => res.json())
-            .then(data => {
-                if (!data) return;
-                
-                state.lastData = data;
-                state.currentPage = parseInt(page);
-                state.maxPages = data.max_num_pages || 1;
-                
-                renderResults(data);
-                
-                // Update pagination info
-                if (pageInfo) {
-                    pageInfo.textContent = `Page ${state.currentPage} of ${state.maxPages}`;
-                }
-                if (prevBtn) {
-                    prevBtn.disabled = state.currentPage <= 1;
-                }
-                if (nextBtn) {
-                    nextBtn.disabled = state.currentPage >= state.maxPages;
-                }
-                
-                // Show/hide pagination based on number of pages
-                if (pagination) {
-                    pagination.style.display = state.maxPages > 1 ? 'block' : 'none';
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching results:', error);
-                if (resultsDiv) {
-                    resultsDiv.innerHTML = '<div class="pais-error">Error loading results. Please try again.</div>';
-                }
-            });
-    }
-
-    // --- LOAD CATEGORIES ---
-    function loadCategories() {
-        if (pais_vars && pais_vars.rest_url) {
-            fetch(`${pais_vars.rest_url}popularai/v1/categories`)
-                .then(res => res.json())
-                .then(categories => {
-                    if (categorySelect) {
-                        const defaultOption = document.createElement('option');
-                        defaultOption.value = '';
-                        defaultOption.textContent = 'All Categories';
-                        categorySelect.innerHTML = '';
-                        categorySelect.appendChild(defaultOption);
-                        
-                        categories.forEach(cat => {
-                            const option = document.createElement('option');
-                            option.value = cat.slug;
-                            option.textContent = `${cat.name} (${cat.count})`;
-                            categorySelect.appendChild(option);
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading categories:', error);
-                });
-        }
-    }
-    
-    // Initialize categories
-    loadCategories();
-
-    // --- OPTIONAL: Fetch First Results On Load ---
-    if (keywordInput && categorySelect && resultsDiv) {
-        // fetchResults(1);
-    }
 });
-*/

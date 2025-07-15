@@ -28,6 +28,11 @@ Built for scale, with fast keyword autosuggest, category filtering, sortable res
 
 ---
 
+## 🆕 What's New (v1.2.0)
+- **More Results**: Search results now display 12 items per page.
+- **Alphabetical Categories**: The category dropdown is now sorted alphabetically, making it easier to find what you're looking for.
+- **Bug Fixes**: Resolved JavaScript errors and restored search functionality to ensure accurate results.
+
 ## 🆕 What's New (v0.1.6)
 - **Responsive Design**: Added mobile-friendly card layout for screens ≤800px and table layout for larger screens in list view.
 - **Improved Mobile Experience**: Better readability and touch targets for mobile users with optimized card layout.

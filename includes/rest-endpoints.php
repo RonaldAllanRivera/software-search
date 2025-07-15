@@ -14,7 +14,7 @@ add_action('rest_api_init', function() {
             'orderby' => ['required' => false, 'default' => 'date'],
             'order'   => ['required' => false, 'default' => 'desc'],
             'page'    => ['required' => false, 'default' => 1],
-            'per_page'=> ['required' => false, 'default' => 10],
+            'per_page'=> ['required' => false, 'default' => 12],
         ],
     ]);
 
@@ -34,7 +34,7 @@ function pais_rest_search($request) {
     // Get ALL matching posts from DB (no limit) for accurate PHP-side filtering
     $args = [
         'post_type'      => 'post',
-        'posts_per_page' => 1000, // get all, or use a big enough number
+        'posts_per_page' => -1,   // Fetch all posts to ensure filtering is accurate.
         'paged'          => 1,
         'orderby'        => sanitize_text_field($request['orderby']),
         'order'          => sanitize_text_field($request['order']),
@@ -179,8 +179,8 @@ function pais_get_rating_for_post($post_id) {
 function pais_get_categories_with_count() {
     $categories = get_categories([
         'hide_empty' => true, // Only show categories with posts
-        'orderby' => 'count',
-        'order' => 'DESC',
+        'orderby' => 'name',
+        'order' => 'ASC',
     ]);
     
     $result = [];
