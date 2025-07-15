@@ -14,8 +14,9 @@ All notable changes to this project will be documented here.
 - Resolved JavaScript syntax errors in `search.js` by removing legacy code.
 - Restored the backend search logic to ensure accurate whole-word keyword filtering across all posts.
 
-### Technical Note
-- To ensure keyword search accuracy, the plugin fetches all posts before filtering. This may result in slower performance on sites with a very large number of posts.
+### Improved
+- **Performance Boost**: Implemented database-level whole-word search for significantly faster results with large post collections
+- **Efficiency**: Replaced memory-intensive PHP filtering with optimized SQL queries for better scalability
 
 
 ---

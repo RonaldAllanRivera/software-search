@@ -31,69 +31,55 @@ add_action('rest_api_init', function() {
 
 // --- Search Callback ---
 function pais_rest_search($request) {
-    // Get ALL matching posts from DB (no limit) for accurate PHP-side filtering
+        // 1. Setup WP_Query arguments for efficient, paginated search
     $args = [
         'post_type'      => 'post',
-        'posts_per_page' => -1,   // Fetch all posts to ensure filtering is accurate.
-        'paged'          => 1,
+        'posts_per_page' => intval($request['per_page']),
+        'paged'          => intval($request['page']),
         'orderby'        => sanitize_text_field($request['orderby']),
         'order'          => sanitize_text_field($request['order']),
         'post_status'    => 'publish',
+        'pais_safe_search' => true, // Custom flag to activate our new safe performance filter
     ];
-    if ($request['category']) {
+
+    // 2. Add category and keyword filters if they exist
+    if (!empty($request['category'])) {
         $args['category_name'] = sanitize_text_field($request['category']);
     }
-    if ($request['keyword']) {
+    if (!empty($request['keyword'])) {
         $args['s'] = sanitize_text_field($request['keyword']);
     }
 
-
-    $order_by = sanitize_text_field($request['orderby']);
-    if ($order_by === 'comments') {
+    // 3. Handle special 'comments' orderby case
+    if ($request['orderby'] === 'comments') {
         $args['orderby'] = 'comment_count';
-    } else {
-        $args['orderby'] = in_array($order_by, ['date', 'title']) ? $order_by : 'date';
     }
 
-    $q = new WP_Query($args);
-    $posts = [];
-    $keyword = trim(sanitize_text_field($request['keyword'] ?? ''));
-    $pattern = $keyword !== '' ? '/\b' . preg_quote($keyword, '/') . '\b/i' : false;
+    // 4. Execute the optimized query
+    $query = new WP_Query($args);
 
-    foreach ($q->posts as $post) {
-        $title = get_the_title($post);
-        $excerpt = get_the_excerpt($post);
+    // 5. Format the results
+    $posts = array_map(function($post) {
         $rating = pais_get_rating_for_post($post->ID);
+        return [
+            'ID'        => $post->ID,
+            'title'     => get_the_title($post),
+            'excerpt'   => get_the_excerpt($post),
+            'permalink' => get_permalink($post),
+            'category'  => get_the_category_list(', ', '', $post->ID),
+            'date'      => get_the_date('', $post->ID),
+            'comments'  => get_comments_number($post->ID),
+            'rating'    => $rating['avg'],
+            'votes'     => $rating['count'],
+        ];
+    }, $query->posts);
 
-        // Only add if keyword matches as whole word (or no keyword)
-        if (!$pattern || preg_match($pattern, $title . ' ' . $excerpt)) {
-            $posts[] = [
-                'ID'        => $post->ID,
-                'title'     => $title,
-                'excerpt'   => $excerpt,
-                'permalink' => get_permalink($post),
-                'category'  => get_the_category_list(', ', '', $post->ID),
-                'date'      => get_the_date('', $post->ID),
-                'comments'  => get_comments_number($post->ID),
-                'rating' => $rating['avg'],
-                'votes'  => $rating['count'],
-            ];
-        }
-    }
-
-    // Paginate the PHP-filtered posts
-    $per_page = absint($request['per_page']) ?: 10;
-    $page = absint($request['page']) ?: 1;
-    $total = count($posts);
-    $max_num_pages = max(1, ceil($total / $per_page));
-    $offset = ($page - 1) * $per_page;
-    $paged_posts = array_slice($posts, $offset, $per_page);
-
+    // 6. Return the response with pagination data from the query itself
     return [
-        'total'         => $total,
-        'posts'         => $paged_posts,
-        'max_num_pages' => $max_num_pages,
-        'current_page'  => $page,
+        'total'         => intval($query->found_posts),
+        'posts'         => $posts,
+        'max_num_pages' => intval($query->max_num_pages),
+        'current_page'  => intval($request['page']),
     ];
 }
 
@@ -215,3 +201,42 @@ add_action('rest_api_init', function() {
         'permission_callback' => '__return_true'
     ));
 });
+
+/**
+ * Modifies the search query to enforce a safer, LIKE-based whole-word matching.
+ * This is much more performant than filtering in PHP and safer than REGEXP.
+ *
+ * @param string   $search   The existing search SQL from WordPress.
+ * @param WP_Query $wp_query The current query object.
+ * @return string The modified search SQL.
+ */
+function pais_safe_whole_word_filter($search, $wp_query) {
+    // Only apply this filter if our custom query var is set
+    if (!empty($wp_query->get('pais_safe_search')) && !empty($wp_query->get('s'))) {
+        global $wpdb;
+        $term = $wp_query->get('s');
+
+        // We need to build a custom WHERE clause that checks for the term as a whole word.
+        $like_clauses = [
+            $wpdb->prepare("{$wpdb->posts}.post_title LIKE %s", '% ' . $wpdb->esc_like($term) . ' %'),
+            $wpdb->prepare("{$wpdb->posts}.post_title LIKE %s", $wpdb->esc_like($term) . ' %'),
+            $wpdb->prepare("{$wpdb->posts}.post_title LIKE %s", '% ' . $wpdb->esc_like($term)),
+            $wpdb->prepare("{$wpdb->posts}.post_title = %s", $term),
+            $wpdb->prepare("{$wpdb->posts}.post_excerpt LIKE %s", '% ' . $wpdb->esc_like($term) . ' %'),
+            $wpdb->prepare("{$wpdb->posts}.post_excerpt LIKE %s", $wpdb->esc_like($term) . ' %'),
+            $wpdb->prepare("{$wpdb->posts}.post_excerpt LIKE %s", '% ' . $wpdb->esc_like($term)),
+            $wpdb->prepare("{$wpdb->posts}.post_excerpt = %s", $term),
+            $wpdb->prepare("{$wpdb->posts}.post_content LIKE %s", '% ' . $wpdb->esc_like($term) . ' %'),
+            $wpdb->prepare("{$wpdb->posts}.post_content LIKE %s", $wpdb->esc_like($term) . ' %'),
+            $wpdb->prepare("{$wpdb->posts}.post_content LIKE %s", '% ' . $wpdb->esc_like($term)),
+            $wpdb->prepare("{$wpdb->posts}.post_content = %s", $term),
+        ];
+        
+        // WordPress's default search is inside the $search parameter. We replace it.
+        $search = " AND (" . implode(' OR ', $like_clauses) . ")";
+    }
+    return $search;
+}
+add_filter('posts_search', 'pais_safe_whole_word_filter', 10, 2);
+
+
